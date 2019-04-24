@@ -1,0 +1,17 @@
+echo Cleaning up all the files!
+
+# Deleting all files:
+# rm -r is a command that deletes directories even if they are not empty.
+# I am using the previous variables because they are stored in the computer's memory, so I will delete the files that were made with the previous script.
+
+ArrayLength=${#FileTypeArray[@]}
+for (( i=0; i<${arraylength}; i++ ));
+do
+	FileTypeName=${FileTypeArray[$i]} 	
+	rm -r $FileTypeName"_files"
+done
+
+rm -r other_files
+rm Summary_File
+
+echo Cleaning up completed!

@@ -1,0 +1,77 @@
+echo Script started!
+echo What type of files do you want to sort? e.g. jpg gif docx png
+
+### Reading users input:
+### -a command assigns user's file types sequently to an array variable, starting from 0.
+read -a FileTypeArray
+
+echo Write full adress from which you want to download the file. If you write 'no' unsorted_files.zip will be used for this task. e.g. http://website.com/files/file.zip
+
+### Reading the user's URL:
+read FileDownloadURL
+
+if [ "$FileDownloadURL" == "no" ] || [ "$FileDownloadURL" == "No" ] ### This if statement checks if the user wants to proceed with unsorted_files.zip or the one of their choice.
+then
+	unzip unsorted_files.zip
+else
+	sudo yum install wget ### This line installs wget so that the file can be downloaded, to install we need to have root's rights.
+	wget "$FileDownloadURL" ### The terminal will wait untill the download is finished, so I don't need to place if statement below to check if the file completely downloaded .
+
+	echo Please write the zip file name with the extension e.g. file.zip:
+	
+	read ZipFileName
+	unzip $ZipFileName
+fi
+
+
+ArrayLength=${#FileTypeArray[@]} ### I take the array's length into a variable to find any mistakes easier, keeps it neat for me.
+
+for (( i=0; i<${ArrayLength}; i++ )); 
+	do
+	FileTypeName=${FileTypeArray[$i]} ### I assing the value of the actual file type located in the array (e.g. jpg) to a variable to make it simplier to refer to and to keep it neat again.
+	mkdir -p $FileTypeName"_files" ### Creating directories - "-p" within the mkdir command is used to create only the directories that don't exist, I use it not to get any errors.
+	
+	if [ "$FileDownloadURL" == "no" ] || [ "$FileDownloadURL" == "No" ] ### I have to check again to know which folder I need to use to sort the files from.
+	then
+		mv unsorted_files/*.$FileTypeName $FileTypeName"_files" ### Moving the files from the unsorted folder to their destination folder.
+	else
+		mv $ZipFileName/.$FileTypeName $FileTypeName"_files" ### Moving the files from downloaded unsorted folder to their destination folder.
+	fi
+	
+	echo ..... These are the $FileTypeName files ..... > tmp$i ### These are added so that the files will have a headline of what type they are in the summary file. tmp$i creates exact amount of variables I will need, e.g. tmp0, tmp1, tmp2
+	ls -r $FileTypeName"_files" >> tmp$i ### Please note that I used ">>". It is used to add the output at the end of the document. If I would use ">" it would overwrite my first sentence of the file which is "..... These are (...)"
+	ls -S $FileTypeName"_files" > $FileTypeName"_files"/$FileTypeName"_list" ### This action is done after the "ls -r" to prevent the documents containing the file list being included in the summary file.
+	cat tmp$i >> tmp_Summary ### I need to join all the temporary files together. I need to use temporary summary file because I need to add other file's list later.
+done
+
+mkdir -p other_files ### I need to create this directory "myself" - files without specified format land here
+mv unsorted_files/* other_files ### And to the rest as above in the for loop
+echo ..... These are other files ..... > tmpOther
+ls -r other_files >> tmpOther
+ls -S other_files > other_files/other_list 
+
+cat tmp_Summary tmpOther > Summary_File ### This will sum up all the temporary files I have created.
+
+### Deleting the temporary files:
+rm tmp* 
+
+if [ "$FileDownloadURL" == "no" ] || [ "$FileDownloadURL" == "No" ] ### I have to check again to know which folder I need to delete, I don't need it because it's empty
+	then
+		rm -r unsorted_files
+	else
+		StringLength=${#ZipFileName} ### StringLength stores the zip file name's length
+		FileToRemove=${ZipFileName:0:$StringLength-3} ### I need to use this to take out the ".zip" ending that user put in in the begining. Now I have the directory's name. I can easily remove it.
+		rm -r $FileToRemove
+	fi
+
+echo Script succesfully completed!
+
+# PERSONAL REFLECTION
+# I have never thought that using Bash can just like programming. Now I know that making scripts in Linux is a way of programming, therefore I approached the task similary how I would
+# do it if I was to make this in a C++ or C# language. I always try to keep things neat and as simple as possible so that I could find any suprising mistakes easily.
+# Although I had contact with Linux in my High School and this exercise was rather a reminder for me because it relied mostly on commands, I have never used variables in Linux before,
+# therefore I managed to actually learn something new. Moreover, the Extension Work was a hard nut to crack. Due to that additional work I learned much more than I could actually think of.
+# I never thought that it is possible to use such advanced techniques in Bash to achieve a certain goal. For example, the for loop or the if statement. 
+# Presently, I am aware that I can use multitude ways to reach the final target, thus in my future tasks I will firstly try to dig deep into the bases of my objective. 
+# Moreover, I will now try to use as much funcionts because it makes the coding quicker and more effective.
+
